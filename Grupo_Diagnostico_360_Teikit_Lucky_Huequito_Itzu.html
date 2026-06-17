@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico 360 — Grupo Teikit / Lucky / El Huequito / Itzu</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --rappi: #fe663d;
+    --rappi-end: #ff3d55;
+    --rappi-dark: #CC2D08;
+    --beige: #fff0dd;
+    --blue-pastel: #d9f1ff;
+    --pink-pastel: #f4dff6;
+    --purple-pastel: #e5dcff;
+    --green-ok: #12B76A;
+    --yellow-warn: #F79009;
+    --red-flag: #D92D20;
+    --blue-data: #1570EF;
+    --purple-opp: #7A5AF8;
+    --text-dark: #1a1a2e;
+    --text-mid: #444;
+    --bg: #f8f9fb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', 'Poppins', sans-serif; background: var(--bg); color: var(--text-dark); }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #fe663d 0%, #ff3d55 100%);
+    color: white;
+    padding: 32px 40px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .header-left h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.5px; }
+  .header-left p { opacity: 0.9; margin-top: 4px; font-size: 0.95rem; }
+  .header-badge {
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px; padding: 6px 18px; font-size: 0.85rem; font-weight: 700;
+  }
+  .mostacho { font-size: 2.4rem; }
+
+  /* NAV */
+  .nav {
+    background: white; border-bottom: 2px solid #eee;
+    display: flex; gap: 0; overflow-x: auto; sticky: top 0; z-index: 100;
+    position: sticky; top: 0;
+  }
+  .nav a {
+    padding: 14px 20px; text-decoration: none; color: var(--text-mid);
+    font-size: 0.82rem; font-weight: 700; white-space: nowrap;
+    border-bottom: 3px solid transparent; transition: all 0.2s;
+  }
+  .nav a:hover, .nav a.active { color: var(--rappi); border-bottom-color: var(--rappi); }
+
+  /* SECTIONS */
+  .section { padding: 36px 40px; }
+  .section-title {
+    font-size: 1.3rem; font-weight: 900; color: var(--text-dark);
+    padding: 12px 20px; border-left: 5px solid var(--rappi);
+    background: white; border-radius: 0 8px 8px 0;
+    margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
+  }
+
+  /* KPI CARDS */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  @media(max-width: 900px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+  .kpi-card {
+    background: white; border-radius: 12px; padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-top: 4px solid var(--rappi);
+    transition: transform 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); }
+  .kpi-label { font-size: 0.78rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 1.9rem; font-weight: 900; color: var(--text-dark); margin: 6px 0; }
+  .kpi-delta { font-size: 0.82rem; font-weight: 700; }
+  .kpi-delta.up { color: var(--green-ok); }
+  .kpi-delta.down { color: var(--red-flag); }
+  .kpi-delta.flat { color: var(--yellow-warn); }
+  .kpi-sub { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+
+  /* BRAND TABS */
+  .brand-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .brand-tab {
+    padding: 8px 20px; border-radius: 20px; cursor: pointer;
+    font-size: 0.85rem; font-weight: 700; border: 2px solid;
+    transition: all 0.2s;
+  }
+  .brand-tab.teikit { border-color: #1570EF; color: #1570EF; background: white; }
+  .brand-tab.teikit.active { background: #1570EF; color: white; }
+  .brand-tab.lucky { border-color: #F79009; color: #F79009; background: white; }
+  .brand-tab.lucky.active { background: #F79009; color: white; }
+  .brand-tab.huequito { border-color: #12B76A; color: #12B76A; background: white; }
+  .brand-tab.huequito.active { background: #12B76A; color: white; }
+  .brand-tab.itzu { border-color: #7A5AF8; color: #7A5AF8; background: white; }
+  .brand-tab.itzu.active { background: #7A5AF8; color: white; }
+
+  /* CALL-OUTS */
+  .callout { border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; font-size: 0.88rem; line-height: 1.6; border-left: 5px solid; }
+  .c-red { background: #FEF3F2; border-color: var(--red-flag); }
+  .c-yellow { background: #FFFAEB; border-color: var(--yellow-warn); }
+  .c-green { background: #ECFDF3; border-color: var(--green-ok); }
+  .c-blue { background: #EFF8FF; border-color: var(--blue-data); }
+  .c-purple { background: #F4F3FF; border-color: var(--purple-opp); }
+  .callout strong { display: block; margin-bottom: 6px; font-size: 0.9rem; }
+
+  /* GRID LAYOUTS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+  @media(max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* CHART CARDS */
+  .chart-card {
+    background: white; border-radius: 12px; padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .chart-title { font-size: 0.9rem; font-weight: 800; color: var(--text-dark); margin-bottom: 16px; }
+  .chart-container { position: relative; height: 240px; }
+
+  /* SUMMARY TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  .data-table th {
+    background: linear-gradient(135deg, #fe663d, #ff3d55);
+    color: white; padding: 10px 14px; text-align: left; font-weight: 700;
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .data-table td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; }
+  .data-table tr:hover td { background: #fafafa; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+  .badge-green { background: #ECFDF3; color: #027A48; }
+  .badge-red { background: #FEF3F2; color: #B42318; }
+  .badge-yellow { background: #FFFAEB; color: #B54708; }
+  .badge-blue { background: #EFF8FF; color: #175CD3; }
+  .badge-purple { background: #F4F3FF; color: #5925DC; }
+
+  /* PALANCAS */
+  .palanca-card {
+    background: white; border-radius: 12px; padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-left: 5px solid var(--purple-opp);
+    margin-bottom: 14px;
+  }
+  .palanca-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .palanca-num { background: linear-gradient(135deg, #fe663d, #ff3d55); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.9rem; flex-shrink: 0; }
+  .palanca-brand { font-size: 0.75rem; font-weight: 700; color: #888; }
+  .palanca-title { font-size: 0.95rem; font-weight: 800; color: var(--text-dark); }
+  .palanca-body { font-size: 0.84rem; color: var(--text-mid); line-height: 1.7; }
+  .palanca-meta { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .palanca-tag { font-size: 0.73rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
+
+  /* PLAN 90 */
+  .plan-card {
+    background: white; border-radius: 12px; padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .plan-month-title {
+    font-size: 1rem; font-weight: 900; margin-bottom: 14px;
+    padding-bottom: 10px; border-bottom: 2px solid #f0f0f0;
+  }
+  .plan-item { display: flex; gap: 10px; margin-bottom: 10px; font-size: 0.85rem; line-height: 1.5; }
+  .plan-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+
+  /* RADAR */
+  .radar-wrap { display: flex; justify-content: center; padding: 10px; }
+
+  /* FOOTER */
+  .footer {
+    background: #1a1a2e; color: #aaa;
+    padding: 20px 40px; font-size: 0.78rem;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+
+  .highlight { background: linear-gradient(135deg, #fe663d, #ff3d55); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+  .section-divider { height: 1px; background: linear-gradient(to right, #fe663d33, transparent); margin: 8px 0 24px; }
+
+  /* Brand color accents */
+  .accent-teikit { color: #1570EF; }
+  .accent-lucky { color: #F79009; }
+  .accent-huequito { color: #12B76A; }
+  .accent-itzu { color: #7A5AF8; }
+  .border-teikit { border-top-color: #1570EF !important; }
+  .border-lucky { border-top-color: #F79009 !important; }
+  .border-huequito { border-top-color: #12B76A !important; }
+  .border-itzu { border-top-color: #7A5AF8 !important; }
+
+  .group-summary-row {
+    display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .brand-pill {
+    flex: 1; min-width: 140px; padding: 16px;
+    border-radius: 10px; text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .brand-pill .pill-name { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .brand-pill .pill-gmv { font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; }
+  .brand-pill .pill-orders { font-size: 0.8rem; opacity: 0.8; }
+
+  .opportunity-box {
+    background: linear-gradient(135deg, #f4f3ff, #e5dcff);
+    border: 2px solid var(--purple-opp);
+    border-radius: 12px; padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Tab content show/hide */
+  .brand-content { display: none; }
+  .brand-content.visible { display: block; }
+
+  /* RANKING */
+  .ranking-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 20px; }
+  .ranking-table th { padding: 11px 16px; font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: white; text-align: center; }
+  .ranking-table th:first-child { text-align: left; }
+  .ranking-table td { padding: 10px 16px; border-bottom: 1px solid #f2f2f2; font-size: 0.84rem; text-align: center; }
+  .ranking-table td:first-child { text-align: left; font-weight: 600; }
+  .ranking-table tr:hover td { background: #fafafa; }
+  .ranking-table tr:last-child td { border-bottom: none; }
+  .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; font-weight: 900; font-size: 1rem; }
+  .rank-1 { background: #FEF3C7; color: #92400E; }
+  .rank-2 { background: #F0F0F0; color: #444; }
+  .rank-3 { background: #FEF0D3; color: #7C4A00; }
+  .rank-other { background: #F4F3FF; color: #5925DC; font-size: 0.85rem; }
+  .rank-input { border: 1.5px dashed #ddd; border-radius: 8px; padding: 6px 10px; font-size: 0.9rem; font-weight: 800; text-align: center; width: 64px; background: #FAFAFA; color: var(--text-dark); cursor: pointer; transition: all .2s; }
+  .rank-input:focus { outline: none; border-color: var(--rappi); background: white; }
+  .trend-up { color: var(--green-ok); font-weight: 700; }
+  .trend-down { color: var(--red-flag); font-weight: 700; }
+  .trend-flat { color: var(--yellow-warn); font-weight: 700; }
+  .editable-note { font-size: 0.76rem; color: #aaa; font-style: italic; }
+
+  /* YOY TABLE */
+  .yoy-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 20px; }
+  .yoy-table th { padding: 10px 14px; font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: white; background: #1a1a2e; text-align: center; }
+  .yoy-table th:first-child { text-align: left; }
+  .yoy-table td { padding: 9px 14px; border-bottom: 1px solid #f2f2f2; font-size: 0.83rem; text-align: center; }
+  .yoy-table td:first-child { text-align: left; font-weight: 600; }
+  .yoy-table .brand-header td { font-weight: 800; font-size: 0.82rem; padding: 7px 14px; }
+  .yoy-delta-pos { color: var(--green-ok); font-weight: 800; }
+  .yoy-delta-neg { color: var(--red-flag); font-weight: 800; }
+  .yoy-delta-flat { color: var(--yellow-warn); font-weight: 700; }
+
+  /* ADS ROI */
+  .ads-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 16px; }
+  .ads-card-title { font-size: 0.88rem; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .ads-metric { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f5f5f5; font-size: 0.82rem; }
+  .ads-metric:last-child { border-bottom: none; }
+  .ads-metric-label { color: #666; }
+  .ads-metric-value { font-weight: 800; color: var(--text-dark); }
+  .roi-bar-wrap { background: #f0f0f0; border-radius: 20px; height: 8px; margin: 6px 0 2px; overflow: hidden; }
+  .roi-bar { height: 8px; border-radius: 20px; transition: width .8s ease; }
+  .ads-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+  @media(max-width: 900px) { .ads-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <p style="font-size:0.8rem;opacity:0.75;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Diagnóstico Comercial 360</p>
+    <h1>Grupo Sushi & El Huequito</h1>
+    <p>Teikit · Lucky Sushi · El Huequito · Itzu Sushi &nbsp;|&nbsp; Junio 2026 &nbsp;|&nbsp; Rappi MX</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="header-badge">🔬 Diagnóstico interno</div>
+    <div class="mostacho">🥷</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#resumen" class="active">🏠 Resumen Grupo</a>
+  <a href="#ranking">🏆 Ranking Categoría</a>
+  <a href="#yoy">📅 Año vs Año</a>
+  <a href="#ads">💰 ADS & ROI</a>
+  <a href="#teikit">🍣 Teikit</a>
+  <a href="#lucky">🍱 Lucky</a>
+  <a href="#huequito">🥩 El Huequito</a>
+  <a href="#itzu">🔮 Itzu</a>
+  <a href="#palancas">🎯 Palancas</a>
+  <a href="#plan90">📅 Plan 90 días</a>
+</nav>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 1: RESUMEN GRUPO -->
+<!-- ============================================================ -->
+<section class="section" id="resumen">
+  <div class="section-title">🏠 Resumen Ejecutivo del Grupo</div>
+
+  <!-- Group Summary Pills -->
+  <div class="group-summary-row">
+    <div class="brand-pill" style="background:#EFF8FF;border:2px solid #1570EF;">
+      <div class="pill-name accent-teikit">Sushi Shop Teikit</div>
+      <div class="pill-gmv accent-teikit">$5.03M</div>
+      <div class="pill-orders">13,018 órdenes · AOV $386</div>
+      <div style="margin-top:6px;"><span class="badge badge-yellow">⚠️ Caída sostenida</span></div>
+    </div>
+    <div class="brand-pill" style="background:#FFFAEB;border:2px solid #F79009;">
+      <div class="pill-name accent-lucky">Lucky Sushi</div>
+      <div class="pill-gmv accent-lucky">$13.85M</div>
+      <div class="pill-orders">60,880 órdenes · AOV $227</div>
+      <div style="margin-top:6px;"><span class="badge badge-green">✅ Líder del grupo</span></div>
+    </div>
+    <div class="brand-pill" style="background:#ECFDF3;border:2px solid #12B76A;">
+      <div class="pill-name accent-huequito">El Huequito</div>
+      <div class="pill-gmv accent-huequito">$2.90M</div>
+      <div class="pill-orders">6,907 órdenes · AOV $432</div>
+      <div style="margin-top:6px;"><span class="badge badge-blue">📊 Estable · ROAS estrella</span></div>
+    </div>
+    <div class="brand-pill" style="background:#F4F3FF;border:2px solid #7A5AF8;">
+      <div class="pill-name accent-itzu">Itzu Sushi</div>
+      <div class="pill-gmv accent-itzu">$23.1K</div>
+      <div class="pill-orders">37 órdenes · AOV $625</div>
+      <div style="margin-top:6px;"><span class="badge badge-red">🚨 Crítico · sin impulso</span></div>
+    </div>
+  </div>
+
+  <!-- Group KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">GMV Total Grupo</div>
+      <div class="kpi-value">$21.8M</div>
+      <div class="kpi-delta flat">↔ Estancamiento interanual</div>
+      <div class="kpi-sub">Últimos 12 meses registrados</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Órdenes Totales</div>
+      <div class="kpi-value">80,842</div>
+      <div class="kpi-delta down">↓ Lucky jalando todo el volumen</div>
+      <div class="kpi-sub">Lucky = 75% del total del grupo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Markdown Total</div>
+      <div class="kpi-value">$6.95M</div>
+      <div class="kpi-delta down">⚠️ Lucky: $5.34M burn masivo</div>
+      <div class="kpi-sub">Dependencia alta en descuentos</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Revenue Neto Total</div>
+      <div class="kpi-value">$706K</div>
+      <div class="kpi-delta down">🔗 Ratio markdown/revenue: 9.8x</div>
+      <div class="kpi-sub">Huequito más eficiente: ROAS ~50x</div>
+    </div>
+  </div>
+
+  <!-- Callouts críticos del grupo -->
+  <div class="callout c-red">
+    <strong>🚨 RED FLAG — Lucky Sushi quema $5.34M en markdown: ¿rentable?</strong>
+    <b>Forensic:</b> Lucky tiene $13.85M en ventas pero $5.34M en descuentos (38.6% del GMV) y solo $335K de Revenue registrado. <b>Diagnostic:</b> El volumen de órdenes (60,880) es gigante pero el AOV de $227 indica dependencia estructural en promociones agresivas; sin ellas, el tráfico probablemente colapsa. <b>🎯 Palanca:</b> Construir retención orgánica via combos y CRM antes de reducir discount — medir cuántos usuarios compran sin promo.
+  </div>
+
+  <div class="callout c-red">
+    <strong>🚨 RED FLAG — Itzu Sushi: 37 órdenes en todo el período analizado</strong>
+    <b>Forensic:</b> Itzu genera apenas $23K en ventas, con 37 órdenes totales en su file de datos (6 meses). <b>Diagnostic:</b> La marca tiene el AOV más alto del grupo ($625–$832) lo que indica un posicionamiento premium con producto correcto, pero zero tráfico. Problema de visibilidad y setup, no de producto. <b>🎯 Palanca:</b> Diagnóstico urgente de tiendas activas, ABM de ads básicos y fotos de producto — el producto es bueno, falta ser vista.
+  </div>
+
+  <div class="callout c-yellow">
+    <strong>⚠️ ATENCIÓN — Teikit: caída de órdenes del pico de 3,205 (ene '26) a tendencia a la baja</strong>
+    <b>Forensic:</b> Teikit pasó de 3,205 órdenes en enero a 1,743 en marzo (caída -46%), con rebote a ~2,500-3,100 en abril-mayo. El AOV fluctúa entre $342-$477. <b>Diagnostic:</b> Alta volatilidad = dependencia de campañas de corto plazo sin retención estructurada. El ROAS de marzo fue 5.83x (el mejor) con el menor markdown — señal de que las promociones más focalizadas funcionan mejor. <b>🎯 Palanca:</b> Migrar de "promo masiva" a "promo segmentada" con usuarios ya retenidos.
+  </div>
+
+  <div class="callout c-green">
+    <strong>✅ FORTALEZA — El Huequito: ROAS entre 46x-146x, AOV creciente ($430→$443)</strong>
+    <b>Forensic:</b> El Huequito gasta muy poco en markdown ($10K-$11K/mes) y genera $493K-$568K. ROAS estructuralmente sano. AOV creció de $421 en feb a $443 en mayo. <b>Diagnostic:</b> La operación orgánica es buena — el producto tiene valor percibido sin necesidad de descuento profundo. <b>🎯 Oportunidad:</b> Escalar con Turbo (que cayó en abr y rebotó fuerte en mayo), optimizar tiendas que decrecen y explotar el programa de lealtad Pro.
+  </div>
+
+  <!-- Group Trend Chart -->
+  <div class="chart-card" style="margin-top:24px;">
+    <div class="chart-title">📈 Evolución de Órdenes por Marca — Últimos 6 meses</div>
+    <div class="chart-container">
+      <canvas id="chartGroupOrders"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:24px;">
+    <div class="chart-card">
+      <div class="chart-title">💰 GMV Total por Marca (período completo)</div>
+      <div class="chart-container">
+        <canvas id="chartGMVShare"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📊 AOV por Marca — últimos 6 meses</div>
+      <div class="chart-container">
+        <canvas id="chartAOV"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group Summary Table -->
+  <div class="chart-card" style="margin-top:24px;overflow-x:auto;">
+    <div class="chart-title">🧮 Comparativa de Eficiencia — Todas las Marcas</div>
+    <table class="data-table">
+      <thead><tr>
+        <th>Marca</th><th>GMV Total</th><th>Órdenes</th><th>AOV Prom</th>
+        <th>Markdown Total</th><th>ROAS Prom</th><th>Revenue</th><th>Estado</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><b class="accent-teikit">🍣 Sushi Shop Teikit</b></td>
+          <td>$5,030,050</td><td>13,018</td><td>$386</td>
+          <td>$1,557,144</td><td><b>3.23x</b></td><td>$247,215</td>
+          <td><span class="badge badge-yellow">⚠️ En riesgo</span></td>
+        </tr>
+        <tr>
+          <td><b class="accent-lucky">🍱 Lucky Sushi</b></td>
+          <td>$13,848,096</td><td>60,880</td><td>$227</td>
+          <td>$5,339,173</td><td><b>2.60x</b></td><td>$335,510</td>
+          <td><span class="badge badge-red">🚨 Burn alto</span></td>
+        </tr>
+        <tr>
+          <td><b class="accent-huequito">🥩 El Huequito</b></td>
+          <td>$2,635,320 + $266,252 Turbo</td><td>6,907</td><td>$432</td>
+          <td>$47,314 + $10</td><td><b>~50x</b></td><td>$165,000e</td>
+          <td><span class="badge badge-green">✅ Sano</span></td>
+        </tr>
+        <tr>
+          <td><b class="accent-itzu">🔮 Itzu Sushi</b></td>
+          <td>$23,108</td><td>37</td><td>$625</td>
+          <td>$5,403</td><td><b>4.27x</b></td><td>$0</td>
+          <td><span class="badge badge-red">🚨 Emergencia</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN NUEVA: RANKING POR CATEGORÍA -->
+<!-- ============================================================ -->
+<section class="section" id="ranking" style="background:#fffbf0;">
+  <div class="section-title" style="border-left-color:#F79009;">🏆 Ranking por Categoría en Rappi</div>
+
+  <div class="callout c-yellow" style="margin-bottom:20px;">
+    <strong>📝 Sección editable — Actualizar con datos reales cada mes</strong>
+    Los campos de ranking (posición #) son editables directamente en el navegador. Haz click en el número y escribe la posición actual del mes. Los datos de YoY y tendencias se actualizan manualmente. Fuente: ScoreCard 2.0 / X-Rays Dashboard.
+  </div>
+
+  <!-- CATEGORÍA SUSHI -->
+  <div class="chart-card" style="margin-bottom:24px;">
+    <div class="chart-title" style="font-size:1rem;">🍣 Categoría Sushi — Posicionamiento Rappi CDMX</div>
+    <div style="font-size:0.78rem;color:#aaa;margin-bottom:16px;">Ranking por volumen de ventas netas en plataforma. Click en el número para editar.</div>
+    <div style="overflow-x:auto;">
+    <table class="ranking-table">
+      <thead>
+        <tr style="background:linear-gradient(90deg,#1570EF,#1a9bf5);">
+          <th>Marca</th>
+          <th>Ranking actual</th>
+          <th>Mes anterior</th>
+          <th>Tendencia</th>
+          <th>GMV Mayo '26</th>
+          <th>AOV Mayo</th>
+          <th>% Categoría est.</th>
+          <th>Nota</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b class="accent-lucky">🍱 Lucky Sushi</b></td>
+          <td><div class="rank-badge rank-1"><input class="rank-input" id="rank-lucky-now" value="#3" title="Editar ranking"></div></td>
+          <td><span style="color:#aaa;">#<input class="rank-input" id="rank-lucky-prev" value="3" style="width:48px;"></span></td>
+          <td><span class="trend-flat">↔ Estable</span></td>
+          <td>$3.01M</td>
+          <td>$245</td>
+          <td>~18% est.</td>
+          <td><span class="editable-note">Liderar en volumen, no en ranking premium</span></td>
+        </tr>
+        <tr>
+          <td><b class="accent-teikit">🍣 Sushi Shop Teikit</b></td>
+          <td><div class="rank-badge rank-other"><input class="rank-input" id="rank-teikit-now" value="#9" title="Editar ranking"></div></td>
+          <td><span style="color:#aaa;">#<input class="rank-input" id="rank-teikit-prev" value="8" style="width:48px;"></span></td>
+          <td><span class="trend-down">↓ Bajó 1</span></td>
+          <td>$1.08M</td>
+          <td>$346</td>
+          <td>~6% est.</td>
+          <td><span class="editable-note">Cierre Polanco impacta cobertura</span></td>
+        </tr>
+        <tr>
+          <td><b class="accent-itzu">🔮 Itzu Sushi</b></td>
+          <td><div class="rank-badge rank-other"><input class="rank-input" id="rank-itzu-now" value="#80" title="Editar ranking"></div></td>
+          <td><span style="color:#aaa;">#<input class="rank-input" id="rank-itzu-prev" value="80" style="width:48px;"></span></td>
+          <td><span class="trend-down">↓ Sin movimiento</span></td>
+          <td>$4.9K</td>
+          <td>$832</td>
+          <td>&lt;0.1% est.</td>
+          <td><span class="editable-note">Invisible · cierre Terrazas Palacio</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="grid-2" style="margin-top:16px;">
+      <!-- Historial de ranking Lucky -->
+      <div style="background:#FFFAEB;border-radius:8px;padding:14px;">
+        <div style="font-size:0.8rem;font-weight:800;color:var(--lucky);margin-bottom:10px;">🍱 Lucky — Historial ranking sushi (ScoreCard 2.0)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Oct '25</div><div style="font-weight:800;font-size:0.9rem;">#5</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Nov '25</div><div style="font-weight:800;font-size:0.9rem;">#4</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Dic '25</div><div style="font-weight:800;font-size:0.9rem;">#3</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Ene '26</div><div style="font-weight:800;font-size:0.9rem;">#3</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Feb '26</div><div style="font-weight:800;font-size:0.9rem;">#3</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Mar '26</div><div style="font-weight:800;font-size:0.9rem;">#5</div>
+          </div>
+          <div style="text-align:center;background:var(--lucky);border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.7);">May '26</div><div style="font-weight:900;font-size:0.9rem;color:white;" id="lucky-rank-display">#3</div>
+          </div>
+        </div>
+      </div>
+      <!-- Historial Teikit -->
+      <div style="background:#EFF8FF;border-radius:8px;padding:14px;">
+        <div style="font-size:0.8rem;font-weight:800;color:var(--blue-data);margin-bottom:10px;">🍣 Teikit — Historial ranking sushi</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Oct '25</div><div style="font-weight:800;font-size:0.9rem;">#9</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Nov '25</div><div style="font-weight:800;font-size:0.9rem;">#12</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Dic '25</div><div style="font-weight:800;font-size:0.9rem;">#7</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Ene '26</div><div style="font-weight:800;font-size:0.9rem;">#8</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Feb '26</div><div style="font-weight:800;font-size:0.9rem;">#8</div>
+          </div>
+          <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:#aaa;">Mar '26</div><div style="font-weight:800;font-size:0.9rem;">#9</div>
+          </div>
+          <div style="text-align:center;background:var(--blue-data);border-radius:6px;padding:6px 10px;min-width:56px;">
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.7);">May '26</div><div style="font-weight:900;font-size:0.9rem;color:white;">#9</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORÍA TACOS -->
+  <div class="chart-card">
+    <div class="chart-title" style="font-size:1rem;">🥩 Categoría Tacos — Posicionamiento Rappi CDMX</div>
+    <div style="font-size:0.78rem;color:#aaa;margin-bottom:16px;">Click en el número para actualizar.</div>
+    <div style="overflow-x:auto;">
+    <table class="ranking-table">
+      <thead>
+        <tr style="background:linear-gradient(90deg,#12B76A,#0ea55b);">
+          <th>Marca</th>
+          <th>Ranking actual</th>
+          <th>Mes anterior</th>
+          <th>Tendencia</th>
+          <th>GMV Mayo '26</th>
+          <th>AOV Mayo</th>
+          <th>% Categoría est.</th>
+          <th>Nota</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b class="accent-huequito">🥩 El Huequito</b></td>
+          <td><div class="rank-badge rank-other"><input class="rank-input" id="rank-huequito-now" value="#10" title="Editar ranking"></div></td>
+          <td><span style="color:#aaa;">#<input class="rank-input" id="rank-huequito-prev" value="9" style="width:48px;"></span></td>
+          <td><span class="trend-down">↓ -6.1% MoM</span></td>
+          <td>$494K</td>
+          <td>$443</td>
+          <td>~3% est.</td>
+          <td><span class="editable-note">Oceanía cerrada · 8 tiendas activas · fotos pendientes</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div style="background:#ECFDF3;border-radius:8px;padding:14px;margin-top:12px;">
+      <div style="font-size:0.8rem;font-weight:800;color:var(--green-ok);margin-bottom:10px;">🥩 El Huequito — Historial ranking tacos</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+          <div style="font-size:0.68rem;color:#aaa;">Oct '25</div><div style="font-weight:800;font-size:0.9rem;">#9</div>
+        </div>
+        <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+          <div style="font-size:0.68rem;color:#aaa;">Nov '25</div><div style="font-weight:800;font-size:0.9rem;">#12</div>
+        </div>
+        <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+          <div style="font-size:0.68rem;color:#aaa;">Dic '25</div><div style="font-weight:800;font-size:0.9rem;">#11</div>
+        </div>
+        <div style="text-align:center;background:white;border-radius:6px;padding:6px 10px;min-width:56px;">
+          <div style="font-size:0.68rem;color:#aaa;">Ene '26</div><div style="font-weight:800;font-size:0.9rem;">#10</div>
+        </div>
+        <div style="text-align:center;background:var(--green-ok);border-radius:6px;padding:6px 10px;min-width:56px;">
+          <div style="font-size:0.68rem;color:rgba(255,255,255,0.7);">May '26</div><div style="font-weight:900;font-size:0.9rem;color:white;">#10</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN NUEVA: AÑO VS AÑO -->
+<!-- ============================================================ -->
+<section class="section" id="yoy">
+  <div class="section-title" style="border-left-color:#7A5AF8;">📅 Comparativo Año vs Año — 2025 vs 2026</div>
+
+  <div class="callout c-blue" style="margin-bottom:20px;">
+    <strong>📊 Fuente: ScoreCard 2.0 — Datos acumulados enero-mayo de cada año</strong>
+    Comparativo YTD (enero–mayo) 2025 vs 2026 para cada marca. Permite detectar si el grupo está creciendo o contrayendo en escala real, independientemente de las variaciones mes a mes.
+  </div>
+
+  <!-- YoY table by brand -->
+  <div style="overflow-x:auto;margin-bottom:24px;">
+  <table class="yoy-table">
+    <thead>
+      <tr>
+        <th style="text-align:left;">KPI</th>
+        <th>Ene–May 2025</th>
+        <th>Ene–May 2026</th>
+        <th>Δ YoY</th>
+        <th>Tendencia</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- LUCKY -->
+      <tr class="brand-header" style="background:#FFF8EC;">
+        <td colspan="5" style="color:var(--lucky);padding:8px 14px;">🍱 LUCKY SUSHI</td>
+      </tr>
+      <tr>
+        <td>Ventas Brutas</td>
+        <td>$14,006K</td><td>$13,848K</td>
+        <td class="yoy-delta-neg">-1.1%</td>
+        <td><span class="trend-down">↓ Ligera contracción</span></td>
+      </tr>
+      <tr>
+        <td>Órdenes</td>
+        <td>57,348</td><td>60,880</td>
+        <td class="yoy-delta-pos">+6.2%</td>
+        <td><span class="trend-up">↑ Más órdenes</span></td>
+      </tr>
+      <tr>
+        <td>Ticket Promedio (AOV)</td>
+        <td>$244</td><td>$228</td>
+        <td class="yoy-delta-neg">-6.6%</td>
+        <td><span class="trend-down">↓ Descuento erosiona ticket</span></td>
+      </tr>
+      <tr>
+        <td>% Descuento / Venta</td>
+        <td>26.2%</td><td>27.7%</td>
+        <td class="yoy-delta-neg">+1.5 pp</td>
+        <td><span class="trend-down">↓ Mayor dependencia MD</span></td>
+      </tr>
+      <tr>
+        <td>ADS Burn (acumulado)</td>
+        <td>$607K</td><td>$473K</td>
+        <td class="yoy-delta-pos">-22%</td>
+        <td><span class="trend-up">✅ Más eficiente en ADS</span></td>
+      </tr>
+
+      <!-- TEIKIT -->
+      <tr class="brand-header" style="background:#EFF8FF;">
+        <td colspan="5" style="color:var(--blue-data);padding:8px 14px;">🍣 SUSHI SHOP TEIKIT</td>
+      </tr>
+      <tr>
+        <td>Ventas Brutas</td>
+        <td>$7,406K</td><td>$5,030K</td>
+        <td class="yoy-delta-neg">-32.1%</td>
+        <td><span class="trend-down">↓ Caída significativa YoY</span></td>
+      </tr>
+      <tr>
+        <td>Órdenes</td>
+        <td>19,524</td><td>13,018</td>
+        <td class="yoy-delta-neg">-33.3%</td>
+        <td><span class="trend-down">↓ Pérdida de volumen</span></td>
+      </tr>
+      <tr>
+        <td>Ticket Promedio (AOV)</td>
+        <td>$379</td><td>$386</td>
+        <td class="yoy-delta-pos">+1.8%</td>
+        <td><span class="trend-up">↑ Ticket ligeramente mejor</span></td>
+      </tr>
+      <tr>
+        <td>% Descuento / Venta</td>
+        <td>26.7%</td><td>24.5%</td>
+        <td class="yoy-delta-pos">-2.2 pp</td>
+        <td><span class="trend-up">✅ Menos descuento</span></td>
+      </tr>
+      <tr>
+        <td>ADS Burn (acumulado)</td>
+        <td>$424K</td><td>$423K</td>
+        <td class="yoy-delta-flat">~Igual</td>
+        <td><span class="trend-flat">↔ Sin cambio en inversión</span></td>
+      </tr>
+
+      <!-- HUEQUITO -->
+      <tr class="brand-header" style="background:#ECFDF3;">
+        <td colspan="5" style="color:var(--green-ok);padding:8px 14px;">🥩 EL HUEQUITO</td>
+      </tr>
+      <tr>
+        <td>Ventas Brutas</td>
+        <td>$2,186K</td><td>$2,635K</td>
+        <td class="yoy-delta-pos">+20.5%</td>
+        <td><span class="trend-up">✅ Crecimiento sólido YoY</span></td>
+      </tr>
+      <tr>
+        <td>Órdenes</td>
+        <td>4,641</td><td>6,105</td>
+        <td class="yoy-delta-pos">+31.5%</td>
+        <td><span class="trend-up">✅ Fuerte crecimiento</span></td>
+      </tr>
+      <tr>
+        <td>Ticket Promedio (AOV)</td>
+        <td>$471</td><td>$432</td>
+        <td class="yoy-delta-neg">-8.3%</td>
+        <td><span class="trend-down">↓ Ticket bajó levemente</span></td>
+      </tr>
+      <tr>
+        <td>% Descuento / Venta</td>
+        <td>3.1%</td><td>2.1%</td>
+        <td class="yoy-delta-pos">-1.0 pp</td>
+        <td><span class="trend-up">✅ Cada vez menos markdown</span></td>
+      </tr>
+      <tr>
+        <td>Tiendas activas</td>
+        <td>~19</td><td>8 activas (Oceanía cerrada)</td>
+        <td class="yoy-delta-neg">⚠️ Reducción</td>
+        <td><span class="trend-down">↓ Concentración en core</span></td>
+      </tr>
+
+      <!-- ITZU -->
+      <tr class="brand-header" style="background:#F4F3FF;">
+        <td colspan="5" style="color:var(--purple-opp);padding:8px 14px;">🔮 ITZU SUSHI</td>
+      </tr>
+      <tr>
+        <td>Ventas Brutas</td>
+        <td>$113.8K</td><td>$23.1K</td>
+        <td class="yoy-delta-neg">-79.7%</td>
+        <td><span class="trend-down">↓ Caída crítica · cierre Terrazas Palacio</span></td>
+      </tr>
+      <tr>
+        <td>Órdenes</td>
+        <td>178</td><td>37</td>
+        <td class="yoy-delta-neg">-79.2%</td>
+        <td><span class="trend-down">↓ Integración POS fallida</span></td>
+      </tr>
+      <tr>
+        <td>Ticket Promedio (AOV)</td>
+        <td>$639</td><td>$625</td>
+        <td class="yoy-delta-neg">-2.2%</td>
+        <td><span class="trend-flat">↔ Precio premium sostenido</span></td>
+      </tr>
+      <tr>
+        <td>ADS Burn</td>
+        <td>$22.6K</td><td>$0</td>
+        <td class="yoy-delta-neg">-100%</td>
+        <td><span class="trend-down">🚨 Sin inversión activa</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- YoY visual bars -->
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">📊 Ventas Brutas YoY — Ene-May 2025 vs 2026 ($K)</div>
+      <div class="chart-container"><canvas id="chartYoYSales"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📦 Órdenes YoY — Ene-May 2025 vs 2026</div>
+      <div class="chart-container"><canvas id="chartYoYOrders"></canvas></div>
+    </div>
+  </div>
+
+  <div class="callout c-yellow" style="margin-top:16px;">
+    <strong>📌 Lectura ejecutiva del YoY</strong>
+    <b>Lucky</b> crece en órdenes pero baja en ticket — más volumen, menos margen por pedido. <b>Teikit</b> pierde -33% de órdenes YoY con el mismo ADS — señal de pérdida de eficiencia y efecto del cierre de Polanco. <b>El Huequito</b> es el único que crece en ambas métricas (+20% ventas, +31% órdenes) con menos descuento — modelo a replicar. <b>Itzu</b> cae -80% por causas operativas (Terrazas Palacio + POS) — recuperable una vez resuelto el contrato de reapertura.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN NUEVA: ADS & ROI -->
+<!-- ============================================================ -->
+<section class="section" id="ads" style="background:#f0f6ff;">
+  <div class="section-title" style="border-left-color:#1570EF;">💰 Inversión ADS & ROI por Marca — Mayo 2026</div>
+
+  <div class="callout c-blue" style="margin-bottom:20px;">
+    <strong>📊 Metodología de ROI directo</strong>
+    ROAS Directo = Ventas generadas por ads / Inversión ADS. El "ROI Ads" incluye tanto el ADS Burn Rappi como la inversión del aliado. Los datos de inversión ADS corresponden al burn registrado en los exports de datos.
+  </div>
+
+  <!-- ADS Cards por marca -->
+  <div class="ads-grid">
+
+    <!-- Lucky -->
+    <div class="ads-card" style="border-top:4px solid var(--lucky);">
+      <div class="ads-card-title" style="color:var(--lucky);">🍱 Lucky Sushi — ADS Mayo '26</div>
+      <div class="ads-metric"><span class="ads-metric-label">ADS Burn Total</span><span class="ads-metric-value">$271,339</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">% ADS / Ventas</span><span class="ads-metric-value">9.0%</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">Ventas atribuidas (est.)</span><span class="ads-metric-value">$1.2M est.</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">ROAS ADS directo</span><span class="ads-metric-value" style="color:var(--yellow-warn);">4.4x</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">ROAS Total (incl. markdown)</span><span class="ads-metric-value" style="color:var(--red-flag);">3.61x</span></div>
+      <div style="margin-top:12px;">
+        <div style="font-size:0.75rem;color:#888;margin-bottom:4px;">Eficiencia ADS vs benchmark (7x objetivo)</div>
+        <div class="roi-bar-wrap"><div class="roi-bar" style="width:45%;background:var(--yellow-warn);"></div></div>
+        <div style="font-size:0.72rem;color:#aaa;">4.4x de 7x objetivo — oportunidad de mejora con segmentación</div>
+      </div>
+      <div class="callout c-yellow" style="margin-top:12px;padding:10px 14px;">
+        <strong>⚠️ Palanca</strong>
+        Reducir ADS en tiendas con ROAS &lt;3x y redirigir a top 15 por CVR. Objetivo: ADS 5% / ventas con ROAS >6x.
+      </div>
+    </div>
+
+    <!-- Teikit -->
+    <div class="ads-card" style="border-top:4px solid var(--blue-data);">
+      <div class="ads-card-title" style="color:var(--blue-data);">🍣 Teikit — ADS Mayo '26</div>
+      <div class="ads-metric"><span class="ads-metric-label">ADS Burn Total</span><span class="ads-metric-value">$110,700</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">% ADS / Ventas</span><span class="ads-metric-value">10.2%</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">Ventas atribuidas (est.)</span><span class="ads-metric-value">$490K est.</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">ROAS ADS directo</span><span class="ads-metric-value" style="color:var(--yellow-warn);">4.4x</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">ROAS Total (incl. markdown)</span><span class="ads-metric-value" style="color:var(--yellow-warn);">3.4x</span></div>
+      <div style="margin-top:12px;">
+        <div style="font-size:0.75rem;color:#888;margin-bottom:4px;">Eficiencia ADS vs benchmark (7x objetivo)</div>
+        <div class="roi-bar-wrap"><div class="roi-bar" style="width:44%;background:var(--blue-data);"></div></div>
+        <div style="font-size:0.72rem;color:#aaa;">4.4x de 7x objetivo · debate: ADS 5% considerado agresivo</div>
+      </div>
+      <div class="callout c-red" style="margin-top:12px;padding:10px 14px;">
+        <strong>🚨 Alerta contrato</strong>
+        ADS al 5% del GMV = ~$54K/mes con ventas actuales. Teikit considera este porcentaje muy agresivo para su margen objetivo (52-53% post-comisiones). Requiere negociación de estructura.
+      </div>
+    </div>
+
+    <!-- Huequito -->
+    <div class="ads-card" style="border-top:4px solid var(--green-ok);">
+      <div class="ads-card-title" style="color:var(--green-ok);">🥩 El Huequito — ADS Mayo '26</div>
+      <div class="ads-metric"><span class="ads-metric-label">ADS Burn Total</span><span class="ads-metric-value" style="color:var(--green-ok);">$835</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">% ADS / Ventas</span><span class="ads-metric-value" style="color:var(--green-ok);">0.17%</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">Ventas totales Mayo</span><span class="ads-metric-value">$493,900</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">ROAS orgánico (sin ADS)</span><span class="ads-metric-value" style="color:var(--green-ok);">~47x</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">% Markdown</span><span class="ads-metric-value" style="color:var(--green-ok);">2.1%</span></div>
+      <div style="margin-top:12px;">
+        <div style="font-size:0.75rem;color:#888;margin-bottom:4px;">Eficiencia total vs benchmark (7x objetivo)</div>
+        <div class="roi-bar-wrap"><div class="roi-bar" style="width:100%;background:var(--green-ok);"></div></div>
+        <div style="font-size:0.72rem;color:var(--green-ok);font-weight:700;">47x — muy por encima del objetivo · demanda 100% orgánica</div>
+      </div>
+      <div class="callout c-green" style="margin-top:12px;padding:10px 14px;">
+        <strong>✅ Oportunidad</strong>
+        Con solo $5-10K de ADS mensuales, Huequito podría captar 200-400 órdenes incrementales. Es la marca con mejor ROI potencial de ADS del grupo. Además: sesión fotográfica urgente para mejorar CVR de nuevos usuarios.
+      </div>
+    </div>
+
+    <!-- Itzu -->
+    <div class="ads-card" style="border-top:4px solid var(--purple-opp);">
+      <div class="ads-card-title" style="color:var(--purple-opp);">🔮 Itzu Sushi — ADS Mayo '26</div>
+      <div class="ads-metric"><span class="ads-metric-label">ADS Burn Total</span><span class="ads-metric-value" style="color:var(--red-flag);">$0</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">% ADS / Ventas</span><span class="ads-metric-value" style="color:var(--red-flag);">0%</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">Ventas totales Mayo</span><span class="ads-metric-value">$4,990</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">ROAS ADS</span><span class="ads-metric-value" style="color:var(--red-flag);">N/A · sin inversión</span></div>
+      <div class="ads-metric"><span class="ads-metric-label">Causa caída</span><span class="ads-metric-value" style="color:var(--red-flag);font-size:0.78rem;">Cierre Terrazas Palacio · POS Palacio de Hierro</span></div>
+      <div style="margin-top:12px;">
+        <div style="font-size:0.75rem;color:#888;margin-bottom:4px;">Inversión ADS vs necesaria para activar</div>
+        <div class="roi-bar-wrap"><div class="roi-bar" style="width:0%;background:var(--purple-opp);"></div></div>
+        <div style="font-size:0.72rem;color:#aaa;">$0 invertido · se requiere mínimo $5K/mes para visibilidad básica</div>
+      </div>
+      <div class="callout c-purple" style="margin-top:12px;padding:10px 14px;">
+        <strong>🎯 Plan de activación</strong>
+        Una vez firmado contrato de reapertura (Prado Sur / WTC): activar $5K ADS + nuevo menú premium + fotos. El AOV de $832 garantiza ROAS alto desde el primer mes si hay tráfico básico.
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla consolidada ADS -->
+  <div class="chart-card">
+    <div class="chart-title">📊 Consolidado ADS — Comparativo 4 Marcas · Mayo 2026</div>
+    <div style="overflow-x:auto;">
+    <table class="yoy-table">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Marca</th>
+          <th>ADS Burn</th>
+          <th>% / Ventas</th>
+          <th>ROAS Total</th>
+          <th>Markdown</th>
+          <th>Inversión total</th>
+          <th>Eficiencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b class="accent-lucky">🍱 Lucky Sushi</b></td>
+          <td>$271K</td><td>9.0%</td>
+          <td class="yoy-delta-flat">3.61x</td>
+          <td>$834K</td><td>$1,105K</td>
+          <td><span class="badge badge-yellow">⚠️ Mejorable</span></td>
+        </tr>
+        <tr>
+          <td><b class="accent-teikit">🍣 Teikit</b></td>
+          <td>$111K</td><td>10.2%</td>
+          <td class="yoy-delta-flat">3.4x</td>
+          <td>$322K</td><td>$433K</td>
+          <td><span class="badge badge-yellow">⚠️ ADS alto vs margen</span></td>
+        </tr>
+        <tr>
+          <td><b class="accent-huequito">🥩 El Huequito</b></td>
+          <td style="color:var(--green-ok);font-weight:800;">$835</td><td style="color:var(--green-ok);font-weight:800;">0.17%</td>
+          <td class="yoy-delta-pos">~47x</td>
+          <td>$10.4K</td><td>$11.2K</td>
+          <td><span class="badge badge-green">✅ Modelo ejemplo</span></td>
+        </tr>
+        <tr>
+          <td><b class="accent-itzu">🔮 Itzu Sushi</b></td>
+          <td style="color:var(--red-flag);font-weight:800;">$0</td><td style="color:var(--red-flag);">0%</td>
+          <td class="yoy-delta-neg">N/A</td>
+          <td>$230</td><td>$230</td>
+          <td><span class="badge badge-red">🚨 Sin activación</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+<section class="section" id="teikit" style="background:#f0f6ff;">
+  <div class="section-title" style="border-left-color:#1570EF;">🍣 Diagnóstico — Sushi Shop Teikit</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card border-teikit">
+      <div class="kpi-label">GMV Total</div>
+      <div class="kpi-value accent-teikit">$5.03M</div>
+      <div class="kpi-delta down">↓ Tendencia de caída L3M</div>
+    </div>
+    <div class="kpi-card border-teikit">
+      <div class="kpi-label">Órdenes Totales</div>
+      <div class="kpi-value accent-teikit">13,018</div>
+      <div class="kpi-delta flat">↓ Pico: 3,205 (ene '26)</div>
+    </div>
+    <div class="kpi-card border-teikit">
+      <div class="kpi-label">AOV Promedio</div>
+      <div class="kpi-value accent-teikit">$386</div>
+      <div class="kpi-delta flat">↕ Volatilidad alta ($342-$477)</div>
+    </div>
+    <div class="kpi-card border-teikit">
+      <div class="kpi-label">Mejor ROAS</div>
+      <div class="kpi-value accent-teikit">5.83x</div>
+      <div class="kpi-delta up">✅ Marzo '26 (menos promo = más ROAS)</div>
+    </div>
+  </div>
+
+  <div class="callout c-red">
+    <strong>🚨 RED FLAG — Caída del -46% en órdenes (ene→mar '26), sin recuperación total</strong>
+    <b>Forensic:</b> Enero: 3,205 órdenes / $1.19M. Marzo: 1,743 órdenes / $810K. La caída es pronunciada. Mayo repunta a 3,121 pero el GMV baja a $1.08M (AOV menor $346 vs $371 de feb). <b>Diagnostic:</b> El patrón sugiere campañas de pulso: cuando hay inversión (ene $412K markdown, abr $403K) el volumen sube, pero sin retención estructurada el usuario no regresa organicamente. 🔗 El AOV más alto fue en marzo ($465) con el menor markdown ($139K) — el usuario real de la marca tiene AOV alto. <b>🎯 Palanca:</b> Separar campañas de adquisición (high discount) de campañas de retención (beneficio de lealtad). Migrar graduentes a RappiPro con combos sin promo.
+  </div>
+
+  <div class="callout c-yellow">
+    <strong>⚠️ ATENCIÓN — Ratio Markdown/GMV muy alto: $1.56M en descuentos sobre $5.03M = 31%</strong>
+    <b>Forensic:</b> El markdown mensual oscila entre $139K (mar) y $429K (dic). Los mejores meses en ROAS son los de menor descuento. <b>Diagnostic:</b> La marca no está construyendo demanda latente — está comprando visitas con descuento. El usuario que entra por promo no regresa sin promo. <b>🎯 Palanca:</b> Crear combo "Teikit para 2" a precio especial (sin markdown de rappi) con alto AOV neto. Activar CRM con usuarios que compraron en enero y no han regresado.
+  </div>
+
+  <div class="callout c-blue">
+    <strong>📊 DATO CLAVE — El AOV real del usuario fiel de Teikit es ~$465-477 (marzo, sin promo masiva)</strong>
+    <b>Implicación:</b> La marca tiene un posicionamiento premium funcional. El problema NO es el precio. Es la frecuencia. Cada usuario que compra tiene AOV alto — el reto es que vuelvan más seguido. <b>🎯 Palanca:</b> Programa de "sellado de sello" con Rappi Prime: 4 órdenes en el mes = descuento sorpresa. Incentivar recompra sin subsidiar primera visita.
+  </div>
+
+  <div class="callout c-purple">
+    <strong>💡 OPORTUNIDAD — Turbo Teikit no está en los datos principales: posible tienda subactivada</strong>
+    <b>Forensic:</b> En el file de competencia (export_9) aparece "Sushi Shop Teikit - Turbo" como entidad separada pero sin data de valor en el export analizado. <b>Diagnostic:</b> Si la tienda Turbo no está correctamente configurada o promovida, se pierde el canal de impulso más efectivo para sushi (ticket rápido, entrega <10 min). <b>🎯 Palanca:</b> Revisar configuración de tienda Turbo Teikit, agregar catálogo reducido (top 5 productos), activar banner Turbo en zona de cobertura.
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">📈 Órdenes vs Markdown Mensual — Teikit</div>
+      <div class="chart-container"><canvas id="chartTeikit1"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">💵 AOV & ROAS Mensual — Teikit</div>
+      <div class="chart-container"><canvas id="chartTeikit2"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 3: LUCKY SUSHI -->
+<!-- ============================================================ -->
+<section class="section" id="lucky">
+  <div class="section-title" style="border-left-color:#F79009;">🍱 Diagnóstico — Lucky Sushi</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card border-lucky">
+      <div class="kpi-label">GMV Total</div>
+      <div class="kpi-value accent-lucky">$13.85M</div>
+      <div class="kpi-delta up">✅ Líder del grupo por volumen</div>
+    </div>
+    <div class="kpi-card border-lucky">
+      <div class="kpi-label">Órdenes Totales</div>
+      <div class="kpi-value accent-lucky">60,880</div>
+      <div class="kpi-delta up">Pico: 13,904 (abr '26)</div>
+    </div>
+    <div class="kpi-card border-lucky">
+      <div class="kpi-label">AOV Promedio</div>
+      <div class="kpi-value accent-lucky">$228</div>
+      <div class="kpi-delta flat">⚠️ Bajo vs. categoría</div>
+    </div>
+    <div class="kpi-card border-lucky">
+      <div class="kpi-label">Markdown Total</div>
+      <div class="kpi-value accent-lucky">$5.34M</div>
+      <div class="kpi-delta down">🚨 38.6% del GMV</div>
+    </div>
+  </div>
+
+  <div class="callout c-red">
+    <strong>🚨 RED FLAG — Dependencia masiva de descuentos: $5.34M en markdown sobre $13.85M de ventas (38.6%)</strong>
+    <b>Forensic:</b> Lucky es el motor del grupo pero quema $5.34M en markdown. El Revenue neto es de solo $335K — implica que el margen real para Rappi y el aliado es mínimo. El ROAS promedio está entre 1.83x y 3.61x. <b>Diagnostic:</b> Lucky probablemente adquirió escala a base de promos agresivas (precio bajo + high markdown). El AOV de $228 sugiere que los usuarios están entrenados a comprar solo con oferta. 🔗 La CVR total suma ~102K unidades — el tráfico existe, el problema es la conversión sin promo y el ticket bajo. <b>🎯 Palanca:</b> Testear "combo Lucky sin descuento" con bundle de 2-3 piezas a precio atractivo. Medir % de usuarios que compran sin promo activa.
+  </div>
+
+  <div class="callout c-yellow">
+    <strong>⚠️ ATENCIÓN — AOV de $228 es el más bajo del grupo, incluso debajo de El Huequito con AOV $432</strong>
+    <b>Forensic:</b> Lucky hace casi 5x más órdenes que Teikit pero a menos de la mitad del AOV. <b>Diagnostic:</b> El modelo de Lucky parece ser volumen/conveniencia (muchos pedidos pequeños). Riesgo: si se reduce el markdown, la frecuencia puede caer significativamente porque no hay lealtad construida. <b>🎯 Palanca:</b> Introducir "Lucky Set" — paquetes de mayor valor promedio ($350+) con sushi + bebida + extra. Anclar el AOV hacia arriba.
+  </div>
+
+  <div class="callout c-green">
+    <strong>✅ FORTALEZA — Recuperación notable en abr '26: +39.9% de órdenes (9,941→13,904) y ROAS 3.35x</strong>
+    <b>Forensic:</b> Abril fue el mejor mes en órdenes con 13,904 y ROAS de 3.35x, con un markdown más eficiente ($934K vs $1.44M de febrero). <b>Diagnostic:</b> Cuando Lucky disciplina su inversión, el ROAS mejora. Mayo sostuvo 12,286 órdenes con ROAS 3.61x (el mejor del período). 🔗 Señal de que la eficiencia mejora cuando se reduce el descuento indiscriminado. <b>🎯 Palanca:</b> Replicar la mecánica de abril-mayo como modelo base — identificar qué promos específicas generaron ese pico eficiente.
+  </div>
+
+  <div class="callout c-purple">
+    <strong>💡 OPORTUNIDAD — Lucky Turbo existe como entidad separada: canal sub-explorado</strong>
+    <b>Forensic:</b> "Lucky Sushi Turbo" aparece en el export de categoría (export_9). Si tiene volumen propio, complementa el canal principal con un segmento de alta frecuencia y menor AOV que puede ser muy rentable sin depender de markdown alto. <b>🎯 Palanca:</b> Activar "Lucky Turbo Fast Set" — 3 rolls a precio fijo sin descuento, con entrega <10 min. Perfecto para la ocasión "antojo rápido".
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">📈 Órdenes vs Markdown Mensual — Lucky</div>
+      <div class="chart-container"><canvas id="chartLucky1"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">💵 AOV & ROAS Mensual — Lucky</div>
+      <div class="chart-container"><canvas id="chartLucky2"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 4: EL HUEQUITO -->
+<!-- ============================================================ -->
+<section class="section" id="huequito" style="background:#f0fdf8;">
+  <div class="section-title" style="border-left-color:#12B76A;">🥩 Diagnóstico — El Huequito</div>
+
+  <!-- XRay data from PDF context -->
+  <div class="callout c-blue" style="margin-bottom:18px;">
+    <strong>📊 Fuente complementaria — X-Rays Dashboard MX (mayo '26)</strong>
+    Tenemos acceso al X-Rays Dashboard completo de El Huequito. Los datos del PDF incluyen: Venta Neta acumulada $8.67M, 20,463 órdenes L12M, participación de mercado 2.4-2.7%, tráfico 124,093, CVR 16.5%, ticket promedio $424. Estos datos son del grupo completo de tiendas vs. los datos del file Excel que cubren período más corto.
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card border-huequito">
+      <div class="kpi-label">GMV Total (Excel)</div>
+      <div class="kpi-value accent-huequito">$2.90M</div>
+      <div class="kpi-delta up">+ $266K Turbo</div>
+    </div>
+    <div class="kpi-card border-huequito">
+      <div class="kpi-label">GMV L12M (X-Rays)</div>
+      <div class="kpi-value accent-huequito">$8.67M</div>
+      <div class="kpi-delta down">-1.7% vs LM · -4.9% vs avg L3M</div>
+    </div>
+    <div class="kpi-card border-huequito">
+      <div class="kpi-label">AOV (X-Rays)</div>
+      <div class="kpi-value accent-huequito">$424</div>
+      <div class="kpi-delta up">+0.6% vs LM · Benchmark $375</div>
+    </div>
+    <div class="kpi-card border-huequito">
+      <div class="kpi-label">ROAS Promedio</div>
+      <div class="kpi-value accent-huequito">~50x</div>
+      <div class="kpi-delta up">✅ El más eficiente del grupo</div>
+    </div>
+  </div>
+
+  <div class="callout c-green">
+    <strong>✅ FORTALEZA — ROAS de 46x-146x: El Huequito prácticamente no necesita descuento para vender</strong>
+    <b>Forensic:</b> El markdown mensual es de apenas $10K-$12K generando $493K-$568K en ventas. El AOV de $424 está muy por encima del benchmark de categoría ($375). <b>Diagnostic:</b> El Huequito tiene demanda orgánica real — el usuario lo busca por el producto, no por el descuento. Es la marca más sana del grupo en términos de calidad de demanda. 🔗 X-Rays confirma: los usuarios de El Huequito tienen ticket medio de $414-$454 vs $362 de benchmark. <b>🎯 Palanca:</b> Activar programa de recompra — el usuario fiel tiene AOV alto y viene solo; solo necesita un recordatorio.
+  </div>
+
+  <div class="callout c-red">
+    <strong>🚨 RED FLAG — Ventas cayendo: -9.9% órdenes vs LY, -5.6% vs avg L3M (X-Rays)</strong>
+    <b>Forensic:</b> El X-Rays muestra 20,463 órdenes L12M con -9.9% vs LY. El pico fue en mayo '25 (1,824 órdenes) y el mínimo en abril '26 (1,222). La tendencia descendente es clara. <b>Diagnostic:</b> El tráfico cae (-2.3% vs LM, -6% vs L3M) y la participación de mercado bajó a 2.4% (-9.5% vs LM). No es un problema de conversión (CVR 16.5% estable) sino de exposición. 🔗 Los usuarios retenidos caen: de 1,139 en sep '25 a 1,050 en mayo '26. <b>🎯 Palanca:</b> Activar campaña de reactivación de usuarios que compraron hace 60-90 días con un "vuelve a El Huequito" offer. Corrección urgente de visibilidad (banners, posición en lista).
+  </div>
+
+  <div class="callout c-yellow">
+    <strong>⚠️ ACTUALIZACIÓN JUNTA — Oceanía cerrada: operación concentrada en 8 tiendas activas</strong>
+    Conforme a acuerdos de la última reunión con Roberto: El Huequito Oceanía se cierra y la operación se concentra en las 8 tiendas con mejor desempeño. <b>Acción urgente:</b> Sesión fotográfica completa — las imágenes actuales del menú no reflejan el posicionamiento premium del producto ($443 de ticket promedio). Especificaciones de formato Rappi enviadas a Roberto para coordinar.
+  </div>
+
+  <div class="callout c-yellow">
+    <strong>⚠️ ATENCIÓN — El Huequito Turbo colapsa en abril (27 órdenes vs 157-201 en meses previos)</strong>
+    <b>Forensic:</b> Turbo pasó de 201 órdenes en ene '26 a solo 27 en abril — caída del -83%. Mayo rebotó a 259 (el mejor mes). <b>Diagnostic:</b> El colapso de abril probablemente fue por disponibilidad de tienda o configuración. El rebote de mayo confirma que el canal Turbo tiene demanda real. 🔗 X-Rays muestra tiendas con calificación "Básico" por T. Defectos — esto puede haber afectado la visibilidad del Turbo. <b>🎯 Palanca:</b> Revisar AVA y defect rate de tiendas Turbo en abril. Asegurar disponibilidad 100% en horario pico (12-14h, 19-21h).
+  </div>
+
+  <!-- X-Rays data grid -->
+  <div class="grid-2" style="margin-top:4px;">
+    <div class="callout c-blue" style="margin-bottom:0;">
+      <strong>📊 Desglose usuarios por ciclo de vida (X-Rays mayo '26)</strong>
+      <table style="width:100%;font-size:0.82rem;margin-top:8px;">
+        <tr><td><b>Nuevos</b></td><td>4,398 (35%)</td><td>CVR 12.5%</td><td>Ticket $407</td></tr>
+        <tr><td><b>Retenidos</b></td><td>3,856 (31%)</td><td>CVR 54.6%</td><td>Ticket $414</td></tr>
+        <tr><td><b>Reactivados</b></td><td>4,187 (34%)</td><td>CVR 31.2%</td><td>Ticket $454</td></tr>
+      </table>
+      <div style="margin-top:10px;font-size:0.82rem;">🔗 Los reactivados tienen el ticket más alto ($454). Hay oportunidad en reactivación.</div>
+    </div>
+    <div class="callout c-purple" style="margin-bottom:0;">
+      <strong>💡 Operativo — Estado de tiendas (X-Rays)</strong>
+      <div style="font-size:0.82rem;margin-top:8px;">
+        <div>✅ Top Oro: 10 tiendas &nbsp;|&nbsp; ⭐ Top Plata: 11</div>
+        <div>⚠️ Básico: 26 tiendas &nbsp;|&nbsp; 🚨 Alerta: 3 tiendas</div>
+        <div style="margin-top:8px;">Defect Rate: 2.9% (benchmark 19.5%) ✅</div>
+        <div>Cancelaciones: 0.31% (benchmark 7.15%) ✅</div>
+        <div>Tiempo en línea: 88.7% (benchmark 9.60) ✅</div>
+        <div>Recompra: 27.3% (benchmark 261.5%) ⚠️</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:24px;">
+    <div class="chart-card">
+      <div class="chart-title">📈 Órdenes Mensual — El Huequito (Normal + Turbo)</div>
+      <div class="chart-container"><canvas id="chartHuequito1"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📉 Venta Neta L13M — El Huequito (X-Rays)</div>
+      <div class="chart-container"><canvas id="chartHuequito2"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 5: ITZU SUSHI -->
+<!-- ============================================================ -->
+<section class="section" id="itzu" style="background:#f9f5ff;">
+  <div class="section-title" style="border-left-color:#7A5AF8;">🔮 Diagnóstico — Itzu Sushi</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card border-itzu">
+      <div class="kpi-label">GMV Total</div>
+      <div class="kpi-value accent-itzu">$23,108</div>
+      <div class="kpi-delta down">🚨 Prácticamente inexistente</div>
+    </div>
+    <div class="kpi-card border-itzu">
+      <div class="kpi-label">Órdenes Totales</div>
+      <div class="kpi-value accent-itzu">37</div>
+      <div class="kpi-delta down">Promedio 6-8/mes</div>
+    </div>
+    <div class="kpi-card border-itzu">
+      <div class="kpi-label">AOV</div>
+      <div class="kpi-value accent-itzu">$625-$832</div>
+      <div class="kpi-delta up">✅ El más alto del grupo</div>
+    </div>
+    <div class="kpi-card border-itzu">
+      <div class="kpi-label">Revenue Neto</div>
+      <div class="kpi-value accent-itzu">$0</div>
+      <div class="kpi-delta down">Datos muestran 0 en Revenue</div>
+    </div>
+  </div>
+
+  <div class="callout c-red">
+    <strong>🚨 RED FLAG CRÍTICO — Itzu: cierre de tiendas Terrazas Palacio + falla de integración POS con Palacio de Hierro</strong>
+    <b>Causa confirmada (junta Roberto):</b> Las tiendas de Terrazas Palacio cerraron por restricciones operativas y la integración POS con el sistema de Palacio de Hierro presenta fallas técnicas recurrentes — esto explica la caída del 79% en órdenes YoY. <b>Pendiente contractual:</b> Contrato de reapertura en proceso (nuevas tiendas: Prado Sur y World Trade Center). El menú premium nuevo requiere nueva estrategia promocional una vez activadas. <b>🎯 Palanca:</b> Prioridad #1 = firma de contrato. Una vez activa, activar $5K ADS inmediatamente + nuevo menú premium en plataforma.
+  </div>
+
+  <div class="callout c-green">
+    <strong>✅ FORTALEZA OCULTA — AOV de $625-$832: el usuario que llega a Itzu gasta bien y el producto tiene propuesta premium</strong>
+    <b>Forensic:</b> Abril '26: 8 órdenes por $6,469 = AOV $809. Mayo '26: 6 órdenes por $4,990 = AOV $832. <b>Diagnostic:</b> Esto no es un producto de bajo precio — Itzu claramente tiene posicionamiento premium-sushi que funciona cuando el usuario llega. El problema es pre-funnel (descubrimiento y visibilidad), no post-funnel (conversión o experiencia). <b>🎯 Palanca:</b> Usar el AOV alto como argumento para invertir en banners premium (in-app card + home banner) que destaquen la propuesta diferenciada ("sushi premium, entrega rápida").
+  </div>
+
+  <div class="callout c-purple">
+    <strong>💡 OPORTUNIDAD — Si Itzu logra 50 órdenes/mes al AOV actual ($700), genera $420K anuales sin descuento</strong>
+    <b>Cálculo aproximado:</b> 50 órdenes × $700 AOV × 12 meses = $420K GMV anual. Con el ROAS de 4x que ya tiene, solo necesita $105K de inversión anual ($8.7K/mes). Eso es menos de lo que Lucky gasta en un día. <b>🎯 Palanca:</b> Presentar a Itzu un plan de 90 días con objetivo claro: de 8 a 50 órdenes/mes. Inversión mínima de Rappi ($10K ads) + aliado activa fotos y menú.
+  </div>
+
+  <div class="chart-card" style="margin-top:4px;">
+    <div class="chart-title">📈 Evolución de Órdenes y AOV — Itzu Sushi (L6M)</div>
+    <div class="chart-container"><canvas id="chartItzu"></canvas></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 6: PALANCAS PRIORIZADAS -->
+<!-- ============================================================ -->
+<section class="section" id="palancas" style="background:#1a1a2e;color:white;">
+  <div class="section-title" style="border-left-color:#fe663d;background:rgba(255,255,255,0.05);color:white;">🎯 Palancas Priorizadas — Orden Anti-Ads</div>
+
+  <div class="opportunity-box" style="background:rgba(122,90,248,0.15);border-color:#7A5AF8;">
+    <div style="font-size:0.85rem;color:#c4b5fd;font-weight:700;margin-bottom:8px;">REGLA MAESTRA: Cada palanca cita el hallazgo. Orden: Menú → Combos → Segmentación → Conversión → Turbo/Prime → Ads.</div>
+    <div style="font-size:0.9rem;color:white;">Las 11 palancas abajo están ordenadas por impacto/esfuerzo y siguen el framework Daniel Molina. <b>Las primeras 6 no requieren inversión adicional</b> — solo trabajo operativo y comercial.</div>
+  </div>
+
+  <!-- PALANCA 1 -->
+  <div class="palanca-card" style="background:#1e2d40;border-left-color:#12B76A;">
+    <div class="palanca-header">
+      <div class="palanca-num">1</div>
+      <div>
+        <div class="palanca-brand" style="color:#12B76A;">🥩 EL HUEQUITO · Menú y Combos</div>
+        <div class="palanca-title" style="color:white;">Activar recompra de usuarios reactivados con "Combo de Regreso"</div>
+      </div>
+    </div>
+    <div class="palanca-body" style="color:#ccc;">
+      <b>Hallazgo citado:</b> Los usuarios reactivados tienen el ticket más alto del ciclo de vida ($454) con CVR de 31.2% (X-Rays). Son el segmento de mayor ROI para El Huequito.<br>
+      <b>Mecánica:</b> Crear "Combo El Huequito Regresa" — paquete especial (2 taquizas + bebida + guarnición) a precio especial solo para usuarios con >60 días sin comprar. Push notification + banner in-app segmentado.<br>
+      <b>KPI objetivo:</b> Aumentar usuarios reactivados de 4,187 a 5,500 en 90 días. Impacto estimado: +$600K GMV.
+    </div>
+    <div class="palanca-meta">
+      <span class="palanca-tag" style="background:#ECFDF3;color:#027A48;">✅ Sin inversión adicional</span>
+      <span class="palanca-tag" style="background:#EFF8FF;color:#175CD3;">Mes 1</span>
+      <span class="palanca-tag" style="background:#F4F3FF;color:#5925DC;">Alto impacto</span>
+    </div>
+  </div>
+
+  <!-- PALANCA 2 -->
+  <div class="palanca-card" style="background:#1e2d40;border-left-color:#F79009;">
+    <div class="palanca-header">
+      <div class="palanca-num">2</div>
+      <div>
+        <div class="palanca-brand" style="color:#F79009;">🍱 LUCKY SUSHI · Combos / Ticket</div>
+        <div class="palanca-title" style="color:white;">Introducir "Lucky Premium Set" para elevar AOV de $228 → $280+</div>
+      </div>
+    </div>
+    <div class="palanca-body" style="color:#ccc;">
+      <b>Hallazgo citado:</b> Lucky tiene el AOV más bajo del grupo ($228) a pesar de ser la marca con más órdenes. El ROAS mejora cuando baja el markdown (mayo: ROAS 3.61x vs $834K markdown vs enero: ROAS 2.03x con $1.29M markdown).<br>
+      <b>Mecánica:</b> Bundle "Lucky Set para 2" (sushi + bebida + extra) a $350-380, posicionado como "el sushi completo". Sin descuento adicional — el valor está en el bundle. A/B test: 50% usuarios con descuento actual vs 50% con bundle.<br>
+      <b>KPI objetivo:</b> AOV de $228 → $270 en 60 días. Si 30% de órdenes migran al bundle, GMV sube $1.2M anualizado.
+    </div>
+    <div class="palanca-meta">
+      <span class="palanca-tag" style="background:#FFFAEB;color:#B54708;">⚠️ Requiere trabajo menú</span>
+      <span class="palanca-tag" style="background:#EFF8FF;color:#175CD3;">Mes 1</span>
+      <span class="palanca-tag" style="background:#F4F3FF;color:#5925DC;">Alto impacto GMV</span>
+    </div>
+  </div>
+
+  <!-- PALANCA 3 -->
+  <div class="palanca-card" style="background:#1e2d40;border-left-color:#7A5AF8;">
+    <div class="palanca-header">
+      <div class="palanca-num">3</div>
+      <div>
+        <div class="palanca-brand" style="color:#7A5AF8;">🔮 ITZU SUSHI · Setup urgente</div>
+        <div class="palanca-title" style="color:white;">Auditoría y reactivación de tienda en 72 horas</div>
+      </div>
+    </div>
+    <div class="palanca-body" style="color:#ccc;">
+      <b>Hallazgo citado:</b> 37 órdenes en 6 meses pero AOV de $625-$832. El producto es premium y cuando el usuario llega, compra bien. El problema es pre-funnel (visibilidad / setup).<br>
+      <b>Mecánica:</b> Checklist: (1) Fotos de producto profesionales top 10 SKUs. (2) Menú en español con descripciones. (3) Horarios correctos. (4) Zona de cobertura validada. (5) Categorización correcta en "Sushi". Luego activar Ads básico $5K/mes.<br>
+      <b>KPI objetivo:</b> De 8 órdenes/mes a 40 órdenes/mes en 60 días. Sin descuento — solo visibilidad.
+    </div>
+    <div class="palanca-meta">
+      <span class="palanca-tag" style="background:#ECFDF3;color:#027A48;">✅ Bajo costo</span>
+      <span class="palanca-tag" style="background:#FEF3F2;color:#B42318;">🚨 Urgente</span>
+      <span class="palanca-tag" style="background:#EFF8FF;color:#175CD3;">Sem 1</span>
+    </div>
+  </div>
+
+  <!-- PALANCA 4 -->
+  <div class="palanca-card" style="background:#1e2d40;border-left-color:#1570EF;">
+    <div class="palanca-header">
+      <div class="palanca-num">4</div>
+      <div>
+        <div class="palanca-brand" style="color:#1570EF;">🍣 TEIKIT · Segmentación / Retención</div>
+        <div class="palanca-title" style="color:white;">CRM de reactivación para los 3,205 usuarios de enero '26 que no han regresado</div>
+      </div>
+    </div>
+    <div class="palanca-body" style="color:#ccc;">
+      <b>Hallazgo citado:</b> Teikit tuvo 3,205 órdenes en enero '26 (pico) con una caída a 1,743 en marzo. El usuario que compra una vez tiene AOV alto ($371-$465). El problema es la recompra.<br>
+      <b>Mecánica:</b> Segmentar usuarios que compraron en ene-feb '26 y no han vuelto (>90 días). Push notification "Teikit te extraña" con beneficio de Prime o descuento único de retención (no descuento masivo). <br>
+      <b>KPI objetivo:</b> Reactivar 15% de esos usuarios = ~480 órdenes adicionales × $400 AOV = $192K GMV extra en 30 días.
+    </div>
+    <div class="palanca-meta">
+      <span class="palanca-tag" style="background:#ECFDF3;color:#027A48;">✅ CRM tool Rappi</span>
+      <span class="palanca-tag" style="background:#EFF8FF;color:#175CD3;">Mes 1-2</span>
+    </div>
+  </div>
+
+  <!-- PALANCA 5 -->
+  <div class="palanca-card" style="background:#1e2d40;border-left-color:#12B76A;">
+    <div class="palanca-header">
+      <div class="palanca-num">5</div>
+      <div>
+        <div class="palanca-brand" style="color:#12B76A;">🥩 EL HUEQUITO · Turbo y Prime</div>
+        <div class="palanca-title" style="color:white;">Activar El Huequito Turbo en zonas de alto potencial + fix de disponibilidad</div>
+      </div>
+    </div>
+    <div class="palanca-body" style="color:#ccc;">
+      <b>Hallazgo citado:</b> El Huequito Turbo colapsó a 27 órdenes en abril '26 (vs 200 en enero) y rebotó a 259 en mayo — el canal tiene demanda real. El X-Rays muestra 3 tiendas en "Alerta" operativa y 26 en "Básico".<br>
+      <b>Mecánica:</b> (1) Fix urgente de disponibilidad en tiendas Básico/Alerta. (2) Activar Turbo en 3-5 tiendas más de CDMX con mayor tráfico. (3) Banner Turbo "taquiza en 10 min" en zonas de cobertura. El AOV Turbo ($449/may) es más alto que el normal ($443) — señal positiva.<br>
+      <b>KPI objetivo:</b> Sostener 200+ órdenes Turbo/mes. Impacto: +$90K GMV mensual incremental.
+    </div>
+    <div class="palanca-meta">
+      <span class="palanca-tag" style="background:#FFFAEB;color:#B54708;">⚠️ Fix ops primero</span>
+      <span class="palanca-tag" style="background:#EFF8FF;color:#175CD3;">Mes 1-2</span>
+      <span class="palanca-tag" style="background:#F4F3FF;color:#5925DC;">Alto potencial</span>
+    </div>
+  </div>
+
+  <!-- PALANCA 6 -->
+  <div class="palanca-card" style="background:#1e2d40;border-left-color:#F79009;">
+    <div class="palanca-header">
+      <div class="palanca-num">6</div>
+      <div>
+        <div class="palanca-brand" style="color:#F79009;">🍱 LUCKY · Reducción de dependencia de descuento</div>
+        <div class="palanca-title" style="color:white;">Test de "Lucky sin promo": medir la demanda orgánica real de la marca</div>
+      </div>
+    </div>
+    <div class="palanca-body" style="color:#ccc;">
+      <b>Hallazgo citado:</b> Lucky gasta $5.34M en markdown (38.6% del GMV). El ROAS mejoró en mayo cuando el markdown bajó de $1.44M a $834K — de 1.83x a 3.61x.<br>
+      <b>Mecánica:</b> Seleccionar 10-15 tiendas de alto volumen y durante 2 semanas retirar todos los descuentos Rappi y aliado. Medir caída de órdenes vs. escenario base. El resultado define cuánta demanda es orgánica vs. inducida por descuento. Si la caída es >50%, hay un problema estructural de brand equity que se resuelve con producto, no con más descuento.<br>
+      <b>KPI objetivo:</b> Dato de demanda orgánica real. Si la caída es <30%, Lucky puede ahorrar $1.5M/año en markdown redirigiendo esos recursos a experiencia y premium.
+    </div>
+    <div class="palanca-meta">
+      <span class="palanca-tag" style="background:#ECFDF3;color:#027A48;">✅ Test de 2 semanas</span>
+      <span class="palanca-tag" style="background:#EFF8FF;color:#175CD3;">Mes 2</span>
+      <span class="palanca-tag" style="background:#FEF3F2;color:#B42318;">Dato crítico</span>
+    </div>
+  </div>
+
+  <!-- PALANCAS 7-11 condensadas -->
+  <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;margin-top:8px;">
+    <div style="font-size:0.9rem;font-weight:800;color:white;margin-bottom:16px;">🎯 Palancas 7-11 (Turbo/Prime/Ads — última prioridad)</div>
+    <div class="data-table" style="color:var(--text-dark);">
+      <table class="data-table" style="background:white;border-radius:8px;overflow:hidden;">
+        <thead><tr>
+          <th>#</th><th>Marca</th><th>Palanca</th><th>Hallazgo</th><th>Timing</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>7</td><td class="accent-teikit"><b>Teikit</b></td><td>Activar Turbo Teikit con catálogo de 5 SKUs top</td><td>Turbo subactivado, demanda latente en sushi rápido</td><td><span class="badge badge-blue">Mes 2</span></td></tr>
+          <tr><td>8</td><td class="accent-lucky"><b>Lucky</b></td><td>Migrar 20% de usuarios a RappiPro con "Lucky Pro Benefits"</td><td>9,829 usuarios Pro (79%) ya activos — expandir</td><td><span class="badge badge-blue">Mes 2</span></td></tr>
+          <tr><td>9</td><td class="accent-huequito"><b>El Huequito</b></td><td>Ads segmentados para usuarios que visitaron pero no compraron (CVR gap)</td><td>Tráfico cae -6% L3M — necesita boost de exposición</td><td><span class="badge badge-blue">Mes 2-3</span></td></tr>
+          <tr><td>10</td><td class="accent-itzu"><b>Itzu</b></td><td>Banner Home in-app en zonas premium (Polanco, Santa Fe, Condesa)</td><td>AOV $800 = usuario premium que vive en esas zonas</td><td><span class="badge badge-purple">Mes 3</span></td></tr>
+          <tr><td>11</td><td style="color:#fe663d;"><b>Grupo</b></td><td>Bundle cross-brand "El Huequito + Teikit Night Pack" en fin de semana</td><td>Ambas marcas premium, audiencia complementaria, sin conflicto de categoría</td><td><span class="badge badge-purple">Mes 3</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 7: PLAN 90 DÍAS -->
+<!-- ============================================================ -->
+<section class="section" id="plan90">
+  <div class="section-title">📅 Plan 90 Días — Prioridades por Mes</div>
+
+  <div class="grid-3">
+    <!-- MES 1 -->
+    <div class="plan-card">
+      <div class="plan-month-title" style="color:#fe663d;">📌 Mes 1 — Junio 2026: Activación Inmediata</div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#7A5AF8;"></div>
+        <div><b>🔮 ITZU:</b> Firma contrato reapertura (Prado Sur / WTC). Envío menú nuevo de Roberto. Prep estrategia promocional menú premium.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#12B76A;"></div>
+        <div><b>🥩 HUEQUITO:</b> Sesión fotográfica urgente (especificaciones enviadas a Roberto). Cierre formal Oceanía. Concentrar en 8 tiendas activas.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#1570EF;"></div>
+        <div><b>🍣 TEIKIT:</b> Activar combos Copa Mundial (jueves). Coordinar mapa cobertura cierre Polanco → Parques Polanco / Prado Norte / Río Lerma.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#F79009;"></div>
+        <div><b>🍱 LUCKY:</b> Reactivar viral última semana de junio. Lanzar combos Mundial como test de demanda orgánica. ROAS mayo: 3.61x ✅</div>
+      </div>
+    </div>
+
+    <!-- MES 2 -->
+    <div class="plan-card">
+      <div class="plan-month-title" style="color:#7A5AF8;">📌 Mes 2 — Julio 2026: Escalar + Piloto Turbo</div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#7A5AF8;"></div>
+        <div><b>🔮 ITZU:</b> Apertura Prado Sur / WTC. Activar $5K ADS. Nuevo menú premium live. Meta: 30+ órdenes/mes.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#12B76A;"></div>
+        <div><b>🥩 HUEQUITO:</b> Lanzar Turbo en 3-5 tiendas nuevas CDMX. CRM reactivación usuarios >60 días. Meta: 200+ órdenes Turbo/mes.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#1570EF;"></div>
+        <div><b>🍣 TEIKIT:</b> Piloto Rappi Turbo — 10 tiendas Teikit, horario 6am-6pm. Activar CRM reactivación usuarios ene-feb '26. Meta: 2,800 órdenes.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#F79009;"></div>
+        <div><b>🍱 LUCKY:</b> Piloto Turbo — 10 tiendas Lucky, horario 6am-6pm. Test A/B Lucky Premium Set. Evaluar demanda orgánica sin promo.</div>
+      </div>
+    </div>
+
+    <!-- MES 3 -->
+    <div class="plan-card">
+      <div class="plan-month-title" style="color:#12B76A;">📌 Mes 3 — Agosto 2026: Evaluación y Consolidación</div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#7A5AF8;"></div>
+        <div><b>🔮 ITZU:</b> Si resultados positivos: presentar propuesta Plan 360 con inversión mayor. Meta: 50 órdenes/mes.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#12B76A;"></div>
+        <div><b>🥩 HUEQUITO:</b> Lanzar programa "Huequito Frecuente" — 4 compras = beneficio. Ads segmentados en zonas donde la marca ya tiene tracción.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#1570EF;"></div>
+        <div><b>🍣 TEIKIT:</b> Evaluar resultados. Si CVR mejoró: escalar ads. Si no: revisar menú y posicionamiento. Meta: 2,800+ órdenes/mes estables.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#F79009;"></div>
+        <div><b>🍱 LUCKY:</b> Basado en test orgánico: redefinir nivel de descuento sostenible. Lanzar "Lucky Pro Pack" con Rappi Prime. Meta: ROAS >4x.</div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-dot" style="background:#fe663d;"></div>
+        <div><b>🎯 GRUPO:</b> Presentar resultados 90 días vs baseline. Decidir Plan 360 completo para Q4 2026.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Impacto estimado -->
+  <div style="background:linear-gradient(135deg,#fe663d,#ff3d55);border-radius:12px;padding:28px;margin-top:24px;color:white;">
+    <div style="font-size:1.1rem;font-weight:900;margin-bottom:16px;">📊 Impacto Estimado — 90 días (APROXIMADO*)</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;">
+      <div>
+        <div style="font-size:0.75rem;opacity:0.8;font-weight:700;text-transform:uppercase;">Teikit</div>
+        <div style="font-size:1.6rem;font-weight:900;">+$400K</div>
+        <div style="font-size:0.78rem;opacity:0.8;">GMV incremental estimado</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;opacity:0.8;font-weight:700;text-transform:uppercase;">Lucky</div>
+        <div style="font-size:1.6rem;font-weight:900;">-$800K</div>
+        <div style="font-size:0.78rem;opacity:0.8;">Ahorro en markdown si AOV sube</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;opacity:0.8;font-weight:700;text-transform:uppercase;">El Huequito</div>
+        <div style="font-size:1.6rem;font-weight:900;">+$600K</div>
+        <div style="font-size:0.78rem;opacity:0.8;">Reactivación + Turbo</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;opacity:0.8;font-weight:700;text-transform:uppercase;">Itzu</div>
+        <div style="font-size:1.6rem;font-weight:900;">+$120K</div>
+        <div style="font-size:0.78rem;opacity:0.8;">De cero a 50 órdenes/mes</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:0.78rem;opacity:0.7;">*Estimaciones APROXIMADAS basadas en datos históricos. No garantizan resultados. Sujeto a ejecución operativa y condiciones de mercado.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>🏍️ Rappi MX — Diagnóstico Comercial 360 Interno</div>
+  <div>Marcas: Sushi Shop Teikit · Lucky Sushi · El Huequito (+ Turbo) · Itzu Sushi</div>
+  <div>Fuentes: Data_Export xlsx (1-7) · X-Rays Dashboard MX PDF · Junio 2026</div>
+</div>
+
+<script>
+// =====================================================
+// DATA
+// =====================================================
+const meses6 = ['Dic 25','Ene 26','Feb 26','Mar 26','Abr 26','May 26*'];
+
+// Teikit
+const teikitOrders = [3067, 2752, 2419, 1831, 2617, 2807];
+const teikitMarkdown = [429, 353, 272, 135, 424, 292];  // miles
+const teikitAOV = [383, 371, 379, 477, 398, 342];
+const teikitROAS = [2.74, 2.89, 3.21, 5.83, 2.60, 3.36];
+
+// Lucky
+const luckyOrders = [13889, 11064, 12533, 10833, 13288, 11629];
+const luckyMarkdown = [1641, 1169, 1440, 844, 898, 834]; // miles
+const luckyAOV = [235, 214, 210, 251, 224, 240];
+const luckyROAS = [1.99, 2.03, 1.83, 3.23, 3.32, 3.35];
+
+// El Huequito
+const huequitoOrders = [1696, 1329, 1333, 1663, 1137, 1240];
+const huequitoTurboOrders = [0, 201, 158, 157, 27, 259];
+// X-Rays data (13 months)
+const xraysMonths = ['May25','Jun25','Jul25','Ago25','Sep25','Oct25','Nov25','Dic25','Ene26','Feb26','Mar26','Abr26','May26*'];
+const xraysSales = [792.8, 707.5, 701.4, 751.4, 720.7, 725.2, 673.2, 647.1, 630.4, 581.8, 621.0, 536.8, 582.3]; // miles
+
+// Itzu
+const itzuOrders = [8, 8, 7, 8, 10, 4];  // dic25 not available, using 6m
+const itzuAOV = [665, 547, 407, 553, 763, 832];
+
+// =====================================================
+// CHARTS
+// =====================================================
+
+// Group orders
+new Chart(document.getElementById('chartGroupOrders'), {
+  type: 'line',
+  data: {
+    labels: meses6,
+    datasets: [
+      { label: '🍣 Teikit', data: teikitOrders, borderColor: '#1570EF', backgroundColor: 'rgba(21,112,239,0.1)', tension: 0.4, fill: true },
+      { label: '🍱 Lucky ÷10', data: luckyOrders.map(x => Math.round(x/10)), borderColor: '#F79009', backgroundColor: 'rgba(247,144,9,0.1)', tension: 0.4, fill: true },
+      { label: '🥩 Huequito', data: huequitoOrders, borderColor: '#12B76A', backgroundColor: 'rgba(18,183,106,0.1)', tension: 0.4, fill: true },
+      { label: '🔮 Itzu ×10', data: itzuOrders.map(x => x*10), borderColor: '#7A5AF8', backgroundColor: 'rgba(122,90,248,0.1)', tension: 0.4, fill: true },
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } }, scales: { y: { beginAtZero: true } } }
+});
+
+// GMV Share pie
+new Chart(document.getElementById('chartGMVShare'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Lucky $13.85M', 'Teikit $5.03M', 'El Huequito $2.90M', 'Itzu $23K'],
+    datasets: [{ data: [13848, 5030, 2901, 23], backgroundColor: ['#F79009','#1570EF','#12B76A','#7A5AF8'], borderWidth: 3, borderColor: '#fff' }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 10 } } } } }
+});
+
+// AOV comparison
+new Chart(document.getElementById('chartAOV'), {
+  type: 'bar',
+  data: {
+    labels: meses6,
+    datasets: [
+      { label: '🍣 Teikit AOV', data: teikitAOV, backgroundColor: 'rgba(21,112,239,0.7)' },
+      { label: '🍱 Lucky AOV', data: luckyAOV, backgroundColor: 'rgba(247,144,9,0.7)' },
+      { label: '🥩 Huequito AOV', data: [430,421,428,437,437,443], backgroundColor: 'rgba(18,183,106,0.7)' },
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 } } } }, scales: { y: { beginAtZero: false, min: 150 } } }
+});
+
+// Teikit Charts
+new Chart(document.getElementById('chartTeikit1'), {
+  type: 'bar',
+  data: {
+    labels: meses6,
+    datasets: [
+      { label: 'Órdenes', data: teikitOrders, backgroundColor: 'rgba(21,112,239,0.7)', yAxisID: 'y' },
+      { label: 'Markdown ($K)', data: teikitMarkdown, type: 'line', borderColor: '#D92D20', backgroundColor: 'rgba(217,45,32,0.1)', tension: 0.4, yAxisID: 'y1' }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 } } } }, scales: { y: { beginAtZero: true }, y1: { position: 'right', beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('chartTeikit2'), {
+  type: 'line',
+  data: {
+    labels: meses6,
+    datasets: [
+      { label: 'AOV $', data: teikitAOV, borderColor: '#1570EF', tension: 0.4, yAxisID: 'y' },
+      { label: 'ROAS', data: teikitROAS, borderColor: '#12B76A', tension: 0.4, yAxisID: 'y1', borderDash: [5,5] }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 } } } }, scales: { y: { beginAtZero: false }, y1: { position: 'right', beginAtZero: true } } }
+});
+
+// Lucky Charts
+new Chart(document.getElementById('chartLucky1'), {
+  type: 'bar',
+  data: {
+    labels: meses6,
+    datasets: [
+      { label: 'Órdenes', data: luckyOrders, backgroundColor: 'rgba(247,144,9,0.7)', yAxisID: 'y' },
+      { label: 'Markdown ($K)', data: luckyMarkdown, type: 'line', borderColor: '#D92D20', backgroundColor: 'rgba(217,45,32,0.1)', tension: 0.4, yAxisID: 'y1' }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 } } } }, scales: { y: { beginAtZero: true }, y1: { position: 'right', beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('chartLucky2'), {
+  type: 'line',
+  data: {
+    labels: meses6,
+    datasets: [
+      { label: 'AOV $', data: luckyAOV, borderColor: '#F79009', tension: 0.4, yAxisID: 'y' },
+      { label: 'ROAS', data: luckyROAS, borderColor: '#12B76A', tension: 0.4, yAxisID: 'y1', borderDash: [5,5] }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 } } } }, scales: { y: { beginAtZero: false, min: 150 }, y1: { position: 'right', beginAtZero: true } } }
+});
+
+// Huequito Charts
+new Chart(document.getElementById('chartHuequito1'), {
+  type: 'bar',
+  data: {
+    labels: meses6,
+    datasets: [
+      { label: 'El Huequito Normal', data: huequitoOrders, backgroundColor: 'rgba(18,183,106,0.7)' },
+      { label: 'El Huequito Turbo', data: huequitoTurboOrders, backgroundColor: 'rgba(18,183,106,0.3)', borderColor: '#12B76A', borderWidth: 2 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 } } } }, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('chartHuequito2'), {
+  type: 'line',
+  data: {
+    labels: xraysMonths,
+    datasets: [{ label: 'Venta Neta ($K)', data: xraysSales, borderColor: '#12B76A', backgroundColor: 'rgba(18,183,106,0.15)', tension: 0.4, fill: true, pointRadius: 5 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { font: { size: 10 } } } },
+    scales: { y: { beginAtZero: false, min: 450 } }
+  }
+});
+
+// Itzu Chart
+new Chart(document.getElementById('chartItzu'), {
+  type: 'bar',
+  data: {
+    labels: ['Ene 26','Feb 26','Mar 26','Abr 26','May 26*'],
+    datasets: [
+      { label: 'Órdenes', data: [8, 7, 8, 8, 6], backgroundColor: 'rgba(122,90,248,0.7)', yAxisID: 'y' },
+      { label: 'AOV $', data: [547, 407, 553, 809, 832], type: 'line', borderColor: '#fe663d', tension: 0.4, yAxisID: 'y1', pointRadius: 6 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10 } } } }, scales: { y: { beginAtZero: true, max: 20 }, y1: { position: 'right', beginAtZero: false, min: 300 } } }
+});
+
+// YoY Sales chart
+new Chart(document.getElementById('chartYoYSales'), {
+  type: 'bar',
+  data: {
+    labels: ['Lucky', 'Teikit', 'El Huequito', 'Itzu'],
+    datasets: [
+      { label: 'Ene-May 2025 ($K)', data: [14006, 7406, 2186, 114], backgroundColor: 'rgba(107,114,128,0.6)' },
+      { label: 'Ene-May 2026 ($K)', data: [13848, 5030, 2635, 23], backgroundColor: ['rgba(247,144,9,0.8)','rgba(21,112,239,0.8)','rgba(18,183,106,0.8)','rgba(122,90,248,0.8)'] }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { font: { size: 10 } } } },
+    scales: { y: { beginAtZero: true }, x: {} }
+  }
+});
+
+// YoY Orders chart
+new Chart(document.getElementById('chartYoYOrders'), {
+  type: 'bar',
+  data: {
+    labels: ['Lucky', 'Teikit', 'El Huequito', 'Itzu'],
+    datasets: [
+      { label: 'Ene-May 2025', data: [57348, 19524, 4641, 178], backgroundColor: 'rgba(107,114,128,0.6)' },
+      { label: 'Ene-May 2026', data: [60880, 13018, 6105, 37], backgroundColor: ['rgba(247,144,9,0.8)','rgba(21,112,239,0.8)','rgba(18,183,106,0.8)','rgba(122,90,248,0.8)'] }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { font: { size: 10 } } } },
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+// Smooth scroll for nav
+document.querySelectorAll('.nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
